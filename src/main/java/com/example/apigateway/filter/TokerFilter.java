@@ -46,7 +46,7 @@ public class TokerFilter extends ZuulFilter {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
         String id = request.getParameter("id");
-        if (StringUtils.isEmpty(id)){
+        if (StringUtils.isEmpty(id)) {
             requestContext.setSendZuulResponse(false);
             requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
         }

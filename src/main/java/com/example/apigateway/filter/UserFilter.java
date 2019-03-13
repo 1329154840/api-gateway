@@ -40,7 +40,7 @@ public class UserFilter extends ZuulFilter {
     public boolean shouldFilter() {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-        if(request.getRequestURI().equals("/login")){
+        if (request.getRequestURI().equals("/login")) {
             return true;
         }
         return false;
@@ -51,7 +51,7 @@ public class UserFilter extends ZuulFilter {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
         String id = request.getParameter("id");
-        if (StringUtils.isEmpty(id)){
+        if (StringUtils.isEmpty(id)) {
             requestContext.setSendZuulResponse(false);
             requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
         }

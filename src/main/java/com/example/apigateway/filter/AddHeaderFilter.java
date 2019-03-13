@@ -41,7 +41,7 @@ public class AddHeaderFilter extends ZuulFilter {
     public boolean shouldFilter() {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-        if(request.getRequestURI().equals("/login")){
+        if (request.getRequestURI().equals("/login")) {
             return true;
         }
         return false;
