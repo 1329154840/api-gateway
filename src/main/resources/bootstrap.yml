@@ -1,3 +1,7 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://152.136.94.85:8761/eureka
 spring:
   cloud:
     config:
@@ -6,9 +10,9 @@ spring:
         service-id: CONFIG
       profile: dev
   application:
-    name: zuul
-  sleuth:
-    sampler:
-      probability: 1.0
-  zipkin:
-    base-url: http://127.0.0.1:9411/
+    name: api-gateway
+#  sleuth:
+#    sampler:
+#      probability: 1.0
+#  zipkin:
+#    base-url: http://127.0.0.1:9411/
