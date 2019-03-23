@@ -2,11 +2,17 @@ eureka:
   client:
     service-url:
       defaultZone: http://114.115.130.42:8761/eureka
+    instance:
+      prefer-ip-address: true
+      instance-id: ${eureka.instance.ip-address}:${spring.application.name}:${server.port}
+      ip-address: 127.0.0.1
 spring:
   cloud:
     config:
-      uri: http://114.115.130.42:1111
       profile: dev
+      discovery:
+        enabled: true
+        service-id: config
   application:
     name: api-gateway
 #  sleuth:
