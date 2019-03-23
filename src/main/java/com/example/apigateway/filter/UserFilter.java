@@ -3,11 +3,16 @@ package com.example.apigateway.filter;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_DECORATION_FILTER_ORDER;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
@@ -25,7 +30,11 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
  * @since 1.0-SNAPSHOT
  */
 @Component
+@Slf4j
 public class UserFilter extends ZuulFilter {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
     public String filterType() {
         return PRE_TYPE;
@@ -40,7 +49,11 @@ public class UserFilter extends ZuulFilter {
     public boolean shouldFilter() {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-        if (request.getRequestURI().equals("/login")) {
+        /**
+         * 调用一般服务，需要校验token
+         */
+        if ( !request.getRequestURI().equals("/account") && !request.getRequestURI().contains("/regist") && !request.getRequestURI().contains("/login")) {
+            log.info(request.getRequestURI());
             return true;
         }
         return false;
@@ -48,13 +61,57 @@ public class UserFilter extends ZuulFilter {
 
     @Override
     public Object run() throws ZuulException {
+        String loginHtmlUrl = "http://127.0.0.1/";
+
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-        String id = request.getParameter("id");
-        if (StringUtils.isEmpty(id)) {
-            requestContext.setSendZuulResponse(false);
-            requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+        HttpServletResponse response =requestContext.getResponse();
+        Cookie[] cookies = request.getCookies();
+        if(cookies==null ||cookies.length ==0 ){
+            try {
+                response.sendRedirect(loginHtmlUrl);
+            }catch (Exception e){
+                log.error("重定向错误 {}",e.getMessage());
+            }
+        }else {
+            boolean isFind = false;
+            for (Cookie cookie:cookies){
+                if ("token".equals(cookie.getName())){
+                    isFind =true;
+                    if (!check(cookie.getValue())){
+                        try {
+                            response.sendRedirect(loginHtmlUrl);
+                        }catch (Exception e){
+                            log.error("重定向错误 {}",e.getMessage());
+                        }
+                    }
+                }
+            }
+            if (isFind){
+                try {
+                    response.sendRedirect(loginHtmlUrl);
+                }catch (Exception e){
+                    log.error("重定向错误 {}",e.getMessage());
+                }
+            }
         }
         return null;
+    }
+
+    /**
+     * 从redis获取cookie校验token
+     * @param token
+     * @return
+     */
+    private boolean check(String token){
+        String[] buffer = token.split("-");
+        if (buffer.length != 3){
+            return false;
+        }
+        String rdToken = stringRedisTemplate.opsForValue().get(buffer[0]);
+        if (rdToken.equals(token)){
+            return true;
+        }
+        return false;
     }
 }
