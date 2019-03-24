@@ -52,7 +52,7 @@ public class UserFilter extends ZuulFilter {
         /**
          * 调用一般服务，需要校验token
          */
-        if ( !request.getRequestURI().equals("/account") && !request.getRequestURI().contains("/regist") && !request.getRequestURI().contains("/login")) {
+        if (!request.getRequestURI().equals("/account") && !request.getRequestURI().equals("/account/") && !request.getRequestURI().contains("/regist") && !request.getRequestURI().contains("/login")) {
             log.info(request.getRequestURI());
             return true;
         }
@@ -61,7 +61,7 @@ public class UserFilter extends ZuulFilter {
 
     @Override
     public Object run() throws ZuulException {
-        String loginHtmlUrl = "http://127.0.0.1/";
+        String loginHtmlUrl = "http://127.0.0.1:8080/account";
 
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
@@ -78,7 +78,7 @@ public class UserFilter extends ZuulFilter {
             for (Cookie cookie:cookies){
                 if ("token".equals(cookie.getName())){
                     isFind =true;
-                    if (!check(cookie.getValue())){
+                    if (!check(cookie.getValue(), response)){
                         try {
                             response.sendRedirect(loginHtmlUrl);
                         }catch (Exception e){
@@ -103,13 +103,14 @@ public class UserFilter extends ZuulFilter {
      * @param token
      * @return
      */
-    private boolean check(String token){
+    private boolean check(String token,  HttpServletResponse response){
         String[] buffer = token.split("-");
         if (buffer.length != 3){
             return false;
         }
         String rdToken = stringRedisTemplate.opsForValue().get(buffer[0]);
         if (rdToken.equals(token)){
+            response.setHeader("uid",buffer[0]);
             return true;
         }
         return false;
