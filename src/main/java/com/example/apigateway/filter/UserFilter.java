@@ -54,7 +54,7 @@ public class UserFilter extends ZuulFilter {
          */
         if (!request.getRequestURI().equals("/account") && !request.getRequestURI().equals("/account/") && !request.getRequestURI().contains("/regist") && !request.getRequestURI().contains("/login")) {
             log.info(request.getRequestURI());
-            return true;
+            return false;
         }
         return false;
     }
